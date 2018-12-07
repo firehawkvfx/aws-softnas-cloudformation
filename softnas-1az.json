@@ -20,21 +20,27 @@
         "t2.micro"
       ]
     },
-    "ADMember1PrivateIP": {
+    "PrivateIPEth0NAS1": {
       "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
       "Default": "10.0.0.11",
       "Description": "Fixed private IP for the first Active Directory Domain Member located in Availability Zone 1",
       "Type": "String"
     },
+    "PrivateIPEth1NAS1": {
+      "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+      "Default": "10.0.0.12",
+      "Description": "Fixed private IP for the first Active Directory Domain Member located in Availability Zone 1",
+      "Type": "String"
+    },
     "ADBastion1PrivateIP": {
       "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
-      "Default": "10.0.128.10",
+      "Default": "10.0.128.12",
       "Description": "Fixed private IP for the first bastion server located in Availability Zone 1",
       "Type": "String"
     },
     "ADBastion2PrivateIP": {
       "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
-      "Default": "10.0.128.10",
+      "Default": "10.0.128.12",
       "Description": "Fixed private IP for the second bastion server located in Availability Zone 1",
       "Type": "String"
     },
@@ -509,6 +515,9 @@
         "SubnetId": {
           "Ref": "PrivateSubnet1ID"
         },
+        "PrivateIpAddress": {
+          "Ref": "PrivateIPEth0NAS1"
+        },
         "Description": "Nas1 eth0",
         "GroupSet": [
           {
@@ -529,6 +538,9 @@
       "Properties": {
         "SubnetId": {
           "Ref": "PrivateSubnet1ID"
+        },
+        "PrivateIpAddress": {
+          "Ref": "PrivateIPEth1NAS1"
         },
         "Description": "Nas1 eth1",
         "GroupSet": [
