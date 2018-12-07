@@ -34,7 +34,7 @@
     },
     "ADBastion1PrivateIP": {
       "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
-      "Default": "10.0.128.12",
+      "Default": "10.0.128.10",
       "Description": "Fixed private IP for the first bastion server located in Availability Zone 1",
       "Type": "String"
     },
