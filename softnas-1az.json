@@ -575,7 +575,7 @@
         },
         "EbsOptimized": "true",
         "IamInstanceProfile": {
-          "Ref:": "SoftNASProfile"
+            "Ref": "SoftNASProfile"
         },
         "DisableApiTermination": "false",
         "NetworkInterfaces": [
