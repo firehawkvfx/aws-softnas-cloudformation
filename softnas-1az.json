@@ -4,8 +4,7 @@
   "Parameters": {
     "KeyName": {
       "Description": "The EC2 Key Pair to allow SSH access to the instance",
-      "Type": "String",
-      "Default": "my_key_pair"
+      "Type": "AWS::EC2::KeyPair::KeyName"
     },
     "NasType": {
       "Description": "EC2 instance type",
