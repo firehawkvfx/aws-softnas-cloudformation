@@ -1,0 +1,640 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "SoftNAS Single Instance",
+  "Parameters": {
+    "KeyName": {
+      "Description": "The EC2 Key Pair to allow SSH access to the instance",
+      "Type": "String",
+      "Default": "my_key_pair"
+    },
+    "NasType": {
+      "Description": "EC2 instance type",
+      "Type": "String",
+      "Default": "m4.xlarge"
+    },
+    "ClientType": {
+      "Description": "EC2 instance type",
+      "Type": "String",
+      "Default": "t2.micro",
+      "AllowedValues": [
+        "t2.micro"
+      ]
+    },
+    "ADMember1PrivateIP": {
+      "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+      "Default": "10.0.0.11",
+      "Description": "Fixed private IP for the first Active Directory Domain Member located in Availability Zone 1",
+      "Type": "String"
+    },
+    "ADBastion1PrivateIP": {
+      "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+      "Default": "10.0.128.10",
+      "Description": "Fixed private IP for the first bastion server located in Availability Zone 1",
+      "Type": "String"
+    },
+    "ADBastion2PrivateIP": {
+      "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+      "Default": "10.0.128.10",
+      "Description": "Fixed private IP for the second bastion server located in Availability Zone 1",
+      "Type": "String"
+    },
+    "PrivateSubnet1CIDR": {
+      "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+      "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+      "Default": "10.0.0.0/19",
+      "Description": "CIDR block for private subnet 1 located in Availability Zone 1.",
+      "Type": "String"
+    },
+    "VPCID": {
+      "Description": "ID of the VPC (e.g., vpc-0343606e)",
+      "Type": "AWS::EC2::VPC::Id"
+    },
+    "PrivateSubnet1ID": {
+      "Description": "ID of the private subnet 1 in Availability Zone 1 (e.g., subnet-a0246dcd)",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "PrivateSubnet2CIDR": {
+      "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+      "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+      "Default": "10.0.32.0/19",
+      "Description": "CIDR block for private subnet 2 located in Availability Zone 2.",
+      "Type": "String"
+    },
+    "PrivateSubnet2ID": {
+      "Description": "ID of the private subnet 2 in Availability Zone 2 (e.g., subnet-a0246dcd)",
+      "Type": "AWS::EC2::Subnet::Id"
+    },
+    "PublicSubnet1CIDR": {
+      "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+      "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+      "Default": "10.0.128.0/20",
+      "Description": "CIDR Block for the public DMZ subnet 1 located in Availability Zone 1",
+      "Type": "String"
+    },
+    "PublicSubnet2CIDR": {
+      "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+      "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+      "Default": "10.0.144.0/20",
+      "Description": "CIDR Block for the public DMZ subnet 2 located in Availability Zone 2",
+      "Type": "String"
+    }
+  },
+  "Mappings": {
+    "AWSInstanceType2Ami": {
+      "Softnas": {
+        "401hvm": "ami-a8439eca"
+      },
+      "Client": {
+        "Cent7": "ami-34171d57"
+      }
+    },
+    "AWSAMIRegionMap": {
+      "AMI": {
+        "SOFTNASPLATINUMLOW": "SoftNAS Cloud Platinum - Consumption - For Lower Compute Requirements - SoftNAS Cloud Enterprise 4-0-1"
+      },
+      "ap-northeast-1": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "ap-northeast-2": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "ap-south-1": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "ap-southeast-1": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "ap-southeast-2": {
+        "SOFTNASPLATINUMLOW": "ami-a24a98c0"
+      },
+      "ca-central-1": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "eu-central-1": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "eu-west-1": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "eu-west-2": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "eu-west-3": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "sa-east-1": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "us-east-1": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "us-east-2": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "us-west-1": {
+        "SOFTNASPLATINUMLOW": ""
+      },
+      "us-west-2": {
+        "SOFTNASPLATINUMLOW": ""
+      }
+    }
+  },
+  "Resources": {
+    "SoftNASProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "Roles": [
+          "SoftNAS_HA_IAM"
+        ],
+        "Path": "/"
+      }
+    },
+    "DomainNASSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Domain Members",
+        "VpcId": {
+          "Ref": "VPCID"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "Description": "DNS",
+            "FromPort": "53",
+            "ToPort": "53",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "DNS",
+            "FromPort": "53",
+            "ToPort": "53",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "49152",
+            "ToPort": "65535",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "FromPort": "49152",
+            "ToPort": "65535",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "DNS",
+            "FromPort": "53",
+            "ToPort": "53",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "DNS",
+            "FromPort": "53",
+            "ToPort": "53",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "49152",
+            "ToPort": "65535",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "FromPort": "49152",
+            "ToPort": "65535",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "NFS",
+            "FromPort": "111",
+            "ToPort": "111",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "NFS",
+            "FromPort": "111",
+            "ToPort": "111",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "NFS",
+            "FromPort": "111",
+            "ToPort": "111",
+            "CidrIp": {
+              "Ref": "PublicSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "NFS",
+            "FromPort": "111",
+            "ToPort": "111",
+            "CidrIp": {
+              "Ref": "PublicSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "NFS",
+            "FromPort": "111",
+            "ToPort": "111",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "NFS",
+            "FromPort": "111",
+            "ToPort": "111",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "NFS",
+            "FromPort": "111",
+            "ToPort": "111",
+            "CidrIp": {
+              "Ref": "PublicSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "NFS",
+            "FromPort": "111",
+            "ToPort": "111",
+            "CidrIp": {
+              "Ref": "PublicSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "NFS",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "NFS",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "NFS",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "PublicSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "NFS",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "PublicSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "NFS",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "NFS",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "NFS",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "PublicSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "NFS",
+            "FromPort": "2049",
+            "ToPort": "2049",
+            "CidrIp": {
+              "Ref": "PublicSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "icmp",
+            "Description": "ping",
+            "FromPort": "8",
+            "ToPort": "-1",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "icmp",
+            "Description": "ping",
+            "FromPort": "8",
+            "ToPort": "-1",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "icmp",
+            "Description": "ping",
+            "FromPort": "8",
+            "ToPort": "-1",
+            "CidrIp": {
+              "Ref": "PublicSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "icmp",
+            "Description": "ping",
+            "FromPort": "8",
+            "ToPort": "-1",
+            "CidrIp": {
+              "Ref": "PublicSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "HTTPS",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "HTTPS",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "HTTPS",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "ADBastion1PrivateIP"
+                  },
+                  "/32"
+                ]
+              ]
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "HTTPS",
+            "FromPort": "443",
+            "ToPort": "443",
+            "CidrIp": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "ADBastion2PrivateIP"
+                  },
+                  "/32"
+                ]
+              ]
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "SSH",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "SSH",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "SSH",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "ADBastion1PrivateIP"
+                  },
+                  "/32"
+                ]
+              ]
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "SSH",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "ADBastion2PrivateIP"
+                  },
+                  "/32"
+                ]
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Nas1eth0": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PrivateSubnet1ID"
+        },
+        "Description": "Nas1 eth0",
+        "GroupSet": [
+          {
+            "Ref": "DomainNASSG"
+          }
+        ],
+        "SourceDestCheck": "false",
+        "Tags": [
+          {
+            "Key": "Network",
+            "Value": "Eth0"
+          }
+        ]
+      }
+    },
+    "Nas1eth1": {
+      "Type": "AWS::EC2::NetworkInterface",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PrivateSubnet1ID"
+        },
+        "Description": "Nas1 eth1",
+        "GroupSet": [
+          {
+            "Ref": "DomainNASSG"
+          }
+        ],
+        "SourceDestCheck": "false",
+        "Tags": [
+          {
+            "Key": "Network",
+            "Value": "Eth1"
+          }
+        ]
+      }
+    },
+    "NAS1": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": {
+          "Ref": "NasType"
+        },
+        "KeyName": {
+          "Ref": "KeyName"
+        },
+        "ImageId": {
+          "Fn::FindInMap": [
+            "AWSAMIRegionMap",
+            {
+              "Ref": "AWS::Region"
+            },
+            "SOFTNASPLATINUMLOW"
+          ]
+        },
+        "EbsOptimized": "true",
+        "IamInstanceProfile": {
+          "Ref:": "SoftNASProfile"
+        },
+        "DisableApiTermination": "false",
+        "NetworkInterfaces": [
+          {
+            "NetworkInterfaceId": {
+              "Ref": "Nas1eth0"
+            },
+            "DeviceIndex": "0"
+          },
+          {
+            "NetworkInterfaceId": {
+              "Ref": "Nas1eth1"
+            },
+            "DeviceIndex": "1"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "soloNas"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#cloud-config\n",
+                "hostname: nas1.firehawkvfx.com\n",
+                "fqdn: nas1.firehawkvfx.com\n",
+                "manage_etc_hosts: false\n",
+                "runcmd:\n",
+                "  - echo > /root/.ssh/authorized_keys\n",
+                "  - echo 'export HOSTNAME=nas1.firehawkvfx.com' >> /root/.bash_profile\n",
+                "  - sed -i -e 's/admin@firehawkvfx.com/queglay@gmail.com/g' /var/www/softnas/config/monitoring.ini\n",
+                "  - sed -i -e 's/no/yes/g' /var/www/softnas/config/monitoring.ini\n",
+                "  - sed -i -e 's/SMTP_MAILSERVER=\"\"/SMTP_MAILSERVER=\"smtp-relay.gmail.com\"/g' /var/www/softnas/config/monitoring.ini\n",
+                "  - sed -i -e 's/SMTP_PORT=\"\"/SMTP_PORT=\"587\"/g' /var/www/softnas/config/monitoring.ini\n",
+                "  - sed -i -e 's/SMTP_ENCRYPTION=\"\"/SMTP_ENCRYPTION=\"tlsv1\"/g' /var/www/softnas/config/monitoring.ini\n",
+                "  - cp -a /var/www/softnas/config/general_settings.ini.prototype /var/www/softnas/config/general_settings.ini\n",
+                "  - sed -i -e 's/smtp_mailserver = /smtp_mailserver = \"smtp-relay.gmail.com\"/g' /var/www/softnas/config/general_settings.ini\n",
+                "  - sed -i -e 's/smtp_port = /smtp_port = \"587\"/g' /var/www/softnas/config/general_settings.ini\n",
+                "  - service softnas restart\n",
+                "  - service monit restart\n"
+              ]
+            ]
+          }
+        },
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/sda1",
+            "Ebs": {
+              "VolumeSize": "30",
+              "VolumeType": "gp2"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {}
+}

@@ -1,0 +1,232 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Description": "SoftNAS HA Pair",
+
+  "Parameters": {
+    "KeyName": {
+      "Description": "The EC2 Key Pair to allow SSH access to the instance",
+      "Type": "String",
+      "Default": "my_key_pair"
+    },
+
+    "NasType" : {
+        "Description" : "EC2 instance type",
+          "Type" : "String",
+          "Default" : "m4.xlarge",
+          "AllowedValues" : [ "m3.large","m4.large","m4.xlarge" ]
+      },
+
+    "ClientType" : {
+        "Description" : "EC2 instance type",
+          "Type" : "String",
+          "Default" : "t2.micro",
+          "AllowedValues" : [ "t2.micro","m3.large","m4.large" ]
+      },
+
+    "AllowedSG" : {
+        "Description" : "Allowed SecurityGroups",
+        "Type" : "String",
+        "Default" : "sg-0eefc2f88a31a3264"
+    }
+  },
+
+  "Mappings": {
+    "AWSInstanceType2Ami" : {
+        "Softnas" : { "401hvm" : "ami-a8439eca" },
+        "Client" : { "Cent7" : "ami-d8c21dba" }
+      },
+
+      "VpcConfigs" : {
+          "MyVpc" : { "Public" : "vpc-0cbcdf629e96d65ca" },
+          "MySubnet1" : { "ZoneA" : "subnet-0ab201c89a9dfc773" },
+          "MySubnet2" : { "ZoneB" : "subnet-09c07b99283b584c7" }
+        }
+    },
+
+  "Resources": {
+    "Nas1eth0" : {
+        "Type" : "AWS::EC2::NetworkInterface",
+        "Properties" : {
+            "SubnetId" : { "Fn::FindInMap" : [ "VpcConfigs", "MySubnet1", "ZoneA" ] },
+            "Description" :"Nas1 eth0",
+            "GroupSet" : [ { "Ref": "AllowedSG" } ],
+            "SourceDestCheck" : "false",
+            "Tags" : [ {"Key" : "Network", "Value" : "Eth0"}]
+            }
+        },
+
+    "Nas1eth1" : {
+        "Type" : "AWS::EC2::NetworkInterface",
+        "Properties" : {
+            "SubnetId" : { "Fn::FindInMap" : [ "VpcConfigs", "MySubnet1", "ZoneA" ] },
+            "Description" :"Nas1 eth1",
+            "GroupSet" : [ { "Ref": "AllowedSG" } ],
+            "SourceDestCheck" : "false",
+            "Tags" : [ {"Key" : "Network", "Value" : "Eth1"}]
+            }
+        },
+
+    "Nas2eth0" : {
+        "Type" : "AWS::EC2::NetworkInterface",
+        "Properties" : {
+            "SubnetId" : { "Fn::FindInMap" : [ "VpcConfigs", "MySubnet2", "ZoneB" ] },
+            "Description" :"Nas2 eth0",
+            "GroupSet" : [ { "Ref": "AllowedSG" } ],
+            "SourceDestCheck" : "false",
+            "Tags" : [ {"Key" : "Network", "Value" : "Eth0"}]
+            }
+    },
+
+    "Nas2eth1" : {
+      "Type" : "AWS::EC2::NetworkInterface",
+      "Properties" : {
+        "SubnetId" : { "Fn::FindInMap" : [ "VpcConfigs", "MySubnet2", "ZoneB" ] },
+        "Description" :"Nas2 eth1",
+        "GroupSet" : [ { "Ref": "AllowedSG" } ],
+        "SourceDestCheck" : "false",
+        "Tags" : [ {"Key" : "Network", "Value" : "Eth1"}]
+        }
+    },
+
+    "Client1eth0" : {
+        "Type" : "AWS::EC2::NetworkInterface",
+        "Properties" : {
+            "SubnetId" : { "Fn::FindInMap" : [ "VpcConfigs", "MySubnet1", "ZoneA" ] },
+            "Description" :"Client1 eth0",
+            "GroupSet" : [ { "Ref": "AllowedSG" } ],
+            "SourceDestCheck" : "false",
+            "Tags" : [ {"Key" : "Network", "Value" : "Eth0"}]
+            }
+    },
+
+    "NAS1": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType" : { "Ref" : "NasType" },
+        "KeyName": { "Ref": "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "AWSInstanceType2Ami", "Softnas", "401hvm" ] },
+        "EbsOptimized": "true",
+        "IamInstanceProfile": "SoftNAS_HA_IAM",
+        "DisableApiTermination": "false",
+        "NetworkInterfaces" : [ { "NetworkInterfaceId" : {"Ref" : "Nas1eth0"}, "DeviceIndex" : "0" },
+								{ "NetworkInterfaceId" : {"Ref" : "Nas1eth1"}, "DeviceIndex" : "1" }],
+        "Tags" : [
+                { "Key" : "Name", "Value" : "sourceSteve" }
+              ],
+              "UserData": {
+                          "Fn::Base64": { "Fn::Join": ["", [
+                              "#cloud-config\n",
+                              "hostname: nas1.softnassupport.com\n",
+                              "fqdn: nas1.softnassupport.com\n",
+                              "manage_etc_hosts: false\n",
+                              "runcmd:\n",
+                              "  - echo > /root/.ssh/authorized_keys\n",
+                              "  - echo 'export HOSTNAME=nas1.softnassupport.com' >> /root/.bash_profile\n",
+                              "  - sed -i -e 's/admin@example.com/rethridge@softnas.com/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - sed -i -e 's/no/yes/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - sed -i -e 's/SMTP_MAILSERVER=\"\"/SMTP_MAILSERVER=\"west.smtp.mx.exch080.serverdata.net\"/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - sed -i -e 's/SMTP_PORT=\"\"/SMTP_PORT=\"587\"/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - sed -i -e 's/SMTP_ENCRYPTION=\"\"/SMTP_ENCRYPTION=\"tlsv1\"/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - cp -a /var/www/softnas/config/general_settings.ini.prototype /var/www/softnas/config/general_settings.ini\n",
+                              "  - sed -i -e 's/smtp_mailserver = /smtp_mailserver = \"smtp.gmail.com\"/g' /var/www/softnas/config/general_settings.ini\n",
+                              "  - sed -i -e 's/smtp_port = /smtp_port = \"587\"/g' /var/www/softnas/config/general_settings.ini\n",
+                              "  - service softnas restart\n",
+                              "  - service monit restart\n",
+                              "chpasswd:\n",
+                              "  - list: |\n",
+                              "  - softnas:S0ftnas12345\n",
+                              "  - expire: False\n"
+                              ]]
+                            }
+                    },
+            "BlockDeviceMappings": [
+                {
+                "DeviceName": "/dev/sda1",
+                "Ebs": {
+                "VolumeSize": "30",
+                "VolumeType": "gp2"
+                  }
+                } ]
+            }
+        },
+
+    "NAS2": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType" : { "Ref" : "NasType" },
+        "KeyName": { "Ref": "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "AWSInstanceType2Ami", "Softnas", "401hvm" ] },
+        "EbsOptimized": "true",
+        "IamInstanceProfile": "SoftNAS_HA_IAM",
+        "DisableApiTermination": "false",
+        "NetworkInterfaces" : [ { "NetworkInterfaceId" : {"Ref" : "Nas2eth0"}, "DeviceIndex" : "0" },
+								{ "NetworkInterfaceId" : {"Ref" : "Nas2eth1"}, "DeviceIndex" : "1" }],
+        "Tags" : [
+                { "Key" : "Name", "Value" : "targetSteve" }
+              ],
+              "UserData": {
+                          "Fn::Base64": { "Fn::Join": ["", [
+                              "#cloud-config\n",
+                              "hostname: nas2.softnassupport.com\n",
+                              "fqdn: nas2.softnassupport.com\n",
+                              "manage_etc_hosts: false\n",
+                              "runcmd:\n",
+                              "  - echo > /root/.ssh/authorized_keys\n",
+                              "  - echo 'export HOSTNAME=nas2.softnassupport.com' >> /root/.bash_profile\n",
+                              "  - sed -i -e 's/admin@example.com/rethridge@softnas.com/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - sed -i -e 's/no/yes/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - sed -i -e 's/SMTP_MAILSERVER=\"\"/SMTP_MAILSERVER=\"west.smtp.mx.exch080.serverdata.net\"/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - sed -i -e 's/SMTP_PORT=\"\"/SMTP_PORT=\"587\"/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - sed -i -e 's/SMTP_ENCRYPTION=\"\"/SMTP_ENCRYPTION=\"tlsv1\"/g' /var/www/softnas/config/monitoring.ini\n",
+                              "  - cp -a /var/www/softnas/config/general_settings.ini.prototype /var/www/softnas/config/general_settings.ini\n",
+                              "  - sed -i -e 's/smtp_mailserver = /smtp_mailserver = \"smtp.gmail.com\"/g' /var/www/softnas/config/general_settings.ini\n",
+                              "  - sed -i -e 's/smtp_port = /smtp_port = \"587\"/g' /var/www/softnas/config/general_settings.ini\n",
+                              "  - service softnas restart\n",
+                              "  - service monit restart\n",
+                              "chpasswd:\n",
+                              "  - list: |\n",
+                              "  - softnas:S0ftnas12345\n",
+                              "  - expire: False\n"
+                              ]]
+                            }
+                    },
+            "BlockDeviceMappings": [
+                {
+                "DeviceName": "/dev/sda1",
+                "Ebs": {
+                "VolumeSize": "30",
+                "VolumeType": "gp2"
+                  }
+                } ]
+            }
+        },
+
+    "Client1": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType" : { "Ref" : "ClientType" },
+        "KeyName": { "Ref": "KeyName" },
+        "ImageId" : { "Fn::FindInMap" : [ "AWSInstanceType2Ami", "Client", "Cent7" ] },
+        "EbsOptimized": "false",
+        "DisableApiTermination": "false",
+        "NetworkInterfaces" : [ { "NetworkInterfaceId" : {"Ref" : "Client1eth0"}, "DeviceIndex" : "0" } ],
+        "Tags" : [
+                { "Key" : "Name", "Value" : "clientSteve" }
+              ],
+            "BlockDeviceMappings": [
+                {
+                "DeviceName": "/dev/sda1",
+                "Ebs": {
+                "VolumeSize": "10",
+                "VolumeType": "gp2"
+                  }
+                } ]
+            }
+        }
+    },
+
+"Outputs" : {
+
+    }
+}
