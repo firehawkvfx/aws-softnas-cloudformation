@@ -644,12 +644,10 @@
                 "  - nmap -p 443 www.softnas.com\n",
                 "  - nmap -p 80 mirror.softnas.com\n",
                 "  - nmap -p 443 mirror.softnas.com\n",
-                "  - passwd softnas\n", 
-                "  - ", { "Ref": "SoftnasUserPassword"}, "\n",
-                "  - passwd root\n", 
-                "  - ", { "Ref": "SoftnasUserPassword"}, "\n",
                 "  - service softnas restart\n",
-                "  - service monit restart\n"
+                "  - service monit restart\n",
+                "  - softnas-cmd ackagreement",
+                "  - softnas-cmd executeupdate"
               ]
             ]
           }
