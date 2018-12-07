@@ -3,6 +3,7 @@ Creates a SoftNAS instance in an existing AWS VPC
 
 You will need:
 A VPC with private and public subnets.
+
 A graphical instance to act as a bastion / gateway to configure softnas via HTTPS.
 The Private Subnet must have a nat gateway for SoftNAS to connect to license server and update
 You must execute softnas-role.json before softnas-1az.json so that the proper profile and role can be attached to the instance.
