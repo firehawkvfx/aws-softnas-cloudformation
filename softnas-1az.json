@@ -140,16 +140,6 @@
     }
   },
   "Resources": {
-    "SoftNASProfile": {
-      "Type": "AWS::IAM::InstanceProfile",
-      "DeletionPolicy": "Delete",
-      "Properties": {
-        "Roles": [
-          "SoftNAS_HA_IAM"
-        ],
-        "Path": "/"
-      }
-    },
     "DomainNASSG": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
@@ -555,6 +545,16 @@
         ]
       }
     },
+    "SoftNASProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "Roles": [
+          "SoftNAS_HA_IAM"
+        ],
+        "Path": "/"
+      }
+    },
     "NAS1": {
       "Type": "AWS::EC2::Instance",
       "Properties": {
@@ -575,7 +575,7 @@
         },
         "EbsOptimized": "true",
         "IamInstanceProfile": {
-            "Ref": "SoftNASProfile"
+          "Ref": "SoftNASProfile"
         },
         "DisableApiTermination": "false",
         "NetworkInterfaces": [
