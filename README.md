@@ -19,7 +19,7 @@ Then paste the AMI id from your ec2 console into the cloudformation .json file u
 
 AWSAMIRegionMap
 
-There is currently a limitation in SoftNAS where the roll name must be SoftNAS_HA_IAM for softnas to get appropraite permissions to mount EBS volumes.
+There is currently a limitation in SoftNAS where the roll name must be SoftNAS_HA_IAM for softnas to get appropriate permissions to mount EBS volumes.
 
 This cloudfomration template has been desinged with the intention to keep sensitive production data in a private subnet.  since this instance is placed within a private subnet, a bastion will be required to acess the data.  it is also possible to use Teradici PCOIP to create a graphical bastion for configuration over https.
 
