@@ -629,6 +629,13 @@
                 "  - cp -a /var/www/softnas/config/general_settings.ini.prototype /var/www/softnas/config/general_settings.ini\n",
                 "  - sed -i -e 's/smtp_mailserver = /smtp_mailserver = \"smtp-relay.gmail.com\"/g' /var/www/softnas/config/general_settings.ini\n",
                 "  - sed -i -e 's/smtp_port = /smtp_port = \"587\"/g' /var/www/softnas/config/general_settings.ini\n",
+                "  - yum install -y nmap\n",
+                "  - nmap -p 80 softnas.com\n",
+                "  - nmap -p 443 softnas.com\n",
+                "  - nmap -p 80 www.softnas.com\n",
+                "  - nmap -p 443 www.softnas.com\n",
+                "  - nmap -p 80 mirror.softnas.com\n",
+                "  - nmap -p 443 mirror.softnas.com\n",
                 "  - service softnas restart\n",
                 "  - service monit restart\n"
               ]
