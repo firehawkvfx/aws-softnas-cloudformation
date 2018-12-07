@@ -646,8 +646,11 @@
                 "  - nmap -p 443 mirror.softnas.com\n",
                 "  - service softnas restart\n",
                 "  - service monit restart\n",
-                "  - softnas-cmd ackagreement",
-                "  - softnas-cmd executeupdate"
+                "  - echo 'tempLogin497' | passwd --stdin softnas\n",
+                "  - softnas-cmd login softnas tempLogin497\n",
+                "  - softnas-cmd ackagreement\n",
+                "  - softnas-cmd checkupdate\n",
+                "  - softnas-cmd executeupdate\n"
               ]
             ]
           }
