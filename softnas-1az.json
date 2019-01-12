@@ -160,6 +160,15 @@
         "VpcId": {
           "Ref": "VPCID"
         },
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "Description": "All Outbound",
+            "FromPort": "0",
+            "ToPort": "65535",
+            "CidrIp": "0.0.0.0/32"
+          }
+        ],
         "SecurityGroupIngress": [
           {
             "IpProtocol": "tcp",
