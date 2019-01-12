@@ -162,7 +162,7 @@
         },
         "SecurityGroupEgress": [
           {
-            "IpProtocol": "tcp",
+            "IpProtocol": "-1",
             "Description": "All Outbound",
             "FromPort": "0",
             "ToPort": "65535",
