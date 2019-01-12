@@ -166,7 +166,7 @@
             "Description": "All Outbound",
             "FromPort": "0",
             "ToPort": "65535",
-            "CidrIp": "0.0.0.0/32"
+            "CidrIp": "0.0.0.0/0"
           }
         ],
         "SecurityGroupIngress": [
