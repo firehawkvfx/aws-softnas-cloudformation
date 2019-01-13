@@ -677,5 +677,10 @@
       }
     }
   },
-  "Outputs": {}
+  "Outputs": {
+    "InstanceID" : {
+      "Description": "The Instance ID",  
+      "Value" : { "Ref" : "NAS1" }
+    }
+  }
 }
