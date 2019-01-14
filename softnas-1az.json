@@ -310,6 +310,80 @@
               "Ref": "PublicSubnet2CIDR"
             }
           },
+
+          {
+            "IpProtocol": "udp",
+            "Description": "rquotad, nlockmgr, mountd, status",
+            "FromPort": "2010",
+            "ToPort": "2014",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "rquotad, nlockmgr, mountd, status",
+            "FromPort": "2010",
+            "ToPort": "2014",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "rquotad, nlockmgr, mountd, status",
+            "FromPort": "2010",
+            "ToPort": "2014",
+            "CidrIp": {
+              "Ref": "PublicSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "udp",
+            "Description": "rquotad, nlockmgr, mountd, status",
+            "FromPort": "2010",
+            "ToPort": "2014",
+            "CidrIp": {
+              "Ref": "PublicSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "rquotad, nlockmgr, mountd, status",
+            "FromPort": "2010",
+            "ToPort": "2014",
+            "CidrIp": {
+              "Ref": "PrivateSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "rquotad, nlockmgr, mountd, status",
+            "FromPort": "2010",
+            "ToPort": "2014",
+            "CidrIp": {
+              "Ref": "PrivateSubnet2CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "rquotad, nlockmgr, mountd, status",
+            "FromPort": "2010",
+            "ToPort": "2014",
+            "CidrIp": {
+              "Ref": "PublicSubnet1CIDR"
+            }
+          },
+          {
+            "IpProtocol": "tcp",
+            "Description": "rquotad, nlockmgr, mountd, status",
+            "FromPort": "2010",
+            "ToPort": "2014",
+            "CidrIp": {
+              "Ref": "PublicSubnet2CIDR"
+            }
+          },
+
           {
             "IpProtocol": "udp",
             "Description": "NFS",
