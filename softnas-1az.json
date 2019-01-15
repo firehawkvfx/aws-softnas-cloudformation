@@ -793,7 +793,7 @@
                 "  - cp -a /var/www/softnas/config/general_settings.ini.prototype /var/www/softnas/config/general_settings.ini\n",
                 "  - sed -i -e 's/smtp_mailserver = /smtp_mailserver = \"smtp-relay.gmail.com\"/g' /var/www/softnas/config/general_settings.ini\n",
                 "  - sed -i -e 's/smtp_port = /smtp_port = \"587\"/g' /var/www/softnas/config/general_settings.ini\n",
-                "  - sudo sed -i '/MOUNTD_PORT=892/s/^#*//g' /etc/sysconfig/nfs\n",
+                "  - sed -i '/MOUNTD_PORT=892/s/^#*//g' /etc/sysconfig/nfs\n",
                 "  - yum install -y nmap\n",
                 "  - nmap -p 80 softnas.com\n",
                 "  - nmap -p 443 softnas.com\n",
@@ -832,7 +832,7 @@
     },
     "InstanceIP" : {
       "Description": "The Instance ID",  
-      "Value" : { "Ref" : "NAS1" }
+      "Value" : { "Ref": "PrivateIPEth0NAS1" }
     }
   }
 }
