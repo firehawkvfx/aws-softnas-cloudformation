@@ -801,6 +801,7 @@
                 "  - nmap -p 443 www.softnas.com\n",
                 "  - nmap -p 80 mirror.softnas.com\n",
                 "  - nmap -p 443 mirror.softnas.com\n",
+                "  - echo '/export *(async,insecure,no_subtree_check,no_root_squash,rw,nohide,fsid=0)' >> /etc/exports\n",
                 "  - echo '/export/NAS3/NASVOL3 *(async,insecure,no_subtree_check,no_root_squash,rw,nohide)' >> /etc/exports\n",
                 "  - service nfs restart\n",
                 "  - service softnas restart\n",
