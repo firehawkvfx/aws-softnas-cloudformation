@@ -310,7 +310,6 @@
               "Ref": "PublicSubnet2CIDR"
             }
           },
-
           {
             "IpProtocol": "udp",
             "Description": "rquotad, nlockmgr, mountd, status",
@@ -383,7 +382,6 @@
               "Ref": "PublicSubnet2CIDR"
             }
           },
-
           {
             "IpProtocol": "udp",
             "Description": "rquotad, nlockmgr, mountd, status",
@@ -456,7 +454,6 @@
               "Ref": "PublicSubnet2CIDR"
             }
           },
-
           {
             "IpProtocol": "udp",
             "Description": "NFS",
@@ -793,7 +790,6 @@
                 "  - cp -a /var/www/softnas/config/general_settings.ini.prototype /var/www/softnas/config/general_settings.ini\n",
                 "  - sed -i -e 's/smtp_mailserver = /smtp_mailserver = \"smtp-relay.gmail.com\"/g' /var/www/softnas/config/general_settings.ini\n",
                 "  - sed -i -e 's/smtp_port = /smtp_port = \"587\"/g' /var/www/softnas/config/general_settings.ini\n",
-                "  - sed -i '/MOUNTD_PORT=892/s/^#*//g' /etc/sysconfig/nfs\n",
                 "  - yum install -y nmap\n",
                 "  - nmap -p 80 softnas.com\n",
                 "  - nmap -p 443 softnas.com\n",
@@ -801,6 +797,7 @@
                 "  - nmap -p 443 www.softnas.com\n",
                 "  - nmap -p 80 mirror.softnas.com\n",
                 "  - nmap -p 443 mirror.softnas.com\n",
+                "  - sed -i '/MOUNTD_PORT=892/s/^#*//g' /etc/sysconfig/nfs\n",
                 "  - echo '/export *(async,insecure,no_subtree_check,no_root_squash,rw,nohide,fsid=0)' >> /etc/exports\n",
                 "  - echo '/export/NAS3/NASVOL3 *(async,insecure,no_subtree_check,no_root_squash,rw,nohide)' >> /etc/exports\n",
                 "  - service nfs restart\n",
@@ -829,13 +826,17 @@
     }
   },
   "Outputs": {
-    "InstanceID" : {
-      "Description": "The Instance ID",  
-      "Value" : { "Ref" : "NAS1" }
+    "InstanceID": {
+      "Description": "The Instance ID",
+      "Value": {
+        "Ref": "NAS1"
+      }
     },
-    "InstanceIP" : {
-      "Description": "The Instance ID",  
-      "Value" : { "Ref": "PrivateIPEth0NAS1" }
+    "InstanceIP": {
+      "Description": "The Instance ID",
+      "Value": {
+        "Ref": "PrivateIPEth0NAS1"
+      }
     }
   }
 }
