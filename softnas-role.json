@@ -77,5 +77,29 @@
                 }
             }
         }
+    },
+    "Outputs": {
+        "SoftNasRoleName": {
+            "Description": "The Softnas Role ID",
+            "Value": {
+                "Ref": "SoftNASRole"
+            }
+        },
+        "SoftnasARN": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "SoftNASRole",
+                    "Arn"
+                ]
+            }
+        },
+        "SoftnasRoleID": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "SoftNASRole",
+                    "RoleId"
+                ]
+            }
+        }
     }
 }
