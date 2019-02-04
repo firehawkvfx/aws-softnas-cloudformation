@@ -749,7 +749,7 @@
       "Properties": {
         "Roles": [
           {
-            "Ref": "SoftNAS_HA_IAM"
+            "Ref": "SoftnasRoleName"
           }
         ],
         "Path": "/"
