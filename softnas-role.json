@@ -80,7 +80,7 @@
     },
     "Outputs": {
         "SoftNasRoleName": {
-            "Description": "The Softnas Role ID",
+            "Description": "The Softnas Role Name",
             "Value": {
                 "Ref": "SoftNASRole"
             }
