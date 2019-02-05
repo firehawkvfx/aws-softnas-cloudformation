@@ -16,6 +16,11 @@
       "Type": "String",
       "Default": "ami-a24a98c0"
     },
+    "InstanceName": {
+      "Description": "Softnas AMI ID",
+      "Type": "String",
+      "Default": "SoftNAS"
+    },
     "SoftnasUserPassword": {
       "AllowedPattern": "(?=^.{6,255}$)((?=.*\\d)(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*\\d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
       "Description": "Password for the domain admin user. Must be at least 8 characters containing letters, numbers and symbols",
@@ -112,66 +117,6 @@
       "Default": "10.0.144.0/20",
       "Description": "CIDR Block for the public DMZ subnet 2 located in Availability Zone 2",
       "Type": "String"
-    }
-  },
-  "Mappings": {
-    "AWSInstanceType2Ami": {
-      "Softnas": {
-        "401hvm": "ami-a8439eca"
-      },
-      "Client": {
-        "Cent7": "ami-34171d57"
-      }
-    },
-    "AWSAMIRegionMap": {
-      "AMI": {
-        "SOFTNASPLATINUMLOW": "SoftNAS Cloud Platinum - Consumption - For Lower Compute Requirements - SoftNAS Cloud Enterprise 4-0-1"
-      },
-      "ap-northeast-1": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "ap-northeast-2": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "ap-south-1": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "ap-southeast-1": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "ap-southeast-2": {
-        "SOFTNASPLATINUMLOW": "ami-a24a98c0"
-      },
-      "ca-central-1": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "eu-central-1": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "eu-west-1": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "eu-west-2": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "eu-west-3": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "sa-east-1": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "us-east-1": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "us-east-2": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "us-west-1": {
-        "SOFTNASPLATINUMLOW": ""
-      },
-      "us-west-2": {
-        "SOFTNASPLATINUMLOW": ""
-      }
     }
   },
   "Resources": {
@@ -794,7 +739,9 @@
         "Tags": [
           {
             "Key": "Name",
-            "Value": "soloNas"
+            "Value": {
+              "Ref": "InstanceName"
+            }
           }
         ],
         "UserData": {
